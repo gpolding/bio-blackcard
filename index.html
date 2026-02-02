@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bio Sculpture Black Card, Scroll Panels</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0b0b0b;
+      --fg:rgba(255,255,255,.9);
+      --muted:rgba(255,255,255,.72);
+      --max:860px;
+    }
+
+
+    a{
+        text-decoration-color: none;
+        color:white;
+        font-weight:600;
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+
+    body{
+      margin:0;
+      font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--fg);
+      overflow-x:hidden;
+    }
+
+    .stack{
+      position:relative;
+      height: calc(var(--panels, 1) * 100vh);
+    }
+
+    .panel{height:100vh;}
+    .italic{
+        font-style:italic;
+    }
+    .stage{
+      position:fixed;
+      inset:0;
+      display:grid;
+      place-items:center;
+      padding:64px 20px;
+      pointer-events:none;
+      z-index:999;
+    }
+
+    .stage-inner{
+      width:min(var(--max), calc(100vw - 48px));
+      text-align:center;
+      pointer-events:auto;
+      will-change: opacity;
+    }
+
+    .tpl{display:none;}
+
+    h1{
+      font-size:clamp(38px, 6.6vw, 64px);
+      line-height:1.06;
+      letter-spacing:.02em;
+      font-weight:300;
+      margin:0;
+    }
+
+    h2{
+      font-size:clamp(26px, 5vw, 40px);
+      line-height:1.12;
+      letter-spacing:.04em;
+      font-weight:300;
+      margin:0;
+      text-transform:uppercase;
+    }
+
+    p{
+      font-size:clamp(16px, 3.6vw, 20px);
+      line-height:1.6;
+      color:var(--muted);
+      margin:0;
+    }
+
+    .lead{font-size:clamp(17px, 3.8vw, 22px);}
+
+    .text-small{
+      font-size:clamp(14px, 3.3vw, 18px);
+      line-height:1.55;
+      color:var(--muted);
+      margin:10px 0 0;
+    }
+
+    .fine{
+      font-size:clamp(14px, 3.3vw, 18px);
+      line-height:1.55;
+      color:var(--muted);
+      margin:0;
+      font-style:italic;
+    }
+
+    .spacer-16{height:16px;}
+    .spacer-24{height:24px;}
+    .spacer-32{height:32px;}
+
+    .bold{font-weight:600;color:var(--fg);}
+
+    .hours{
+      margin:26px auto 0;
+      width:min(520px, 92vw);
+      display:grid;
+      gap:10px;
+      font-size:clamp(15px, 3.5vw, 18px);
+      color:var(--muted);
+      text-align:left;
+    }
+
+    .row{display:flex;justify-content:space-between;gap:18px;}
+    .day{font-weight:600;color:var(--fg);}
+
+    @media (hover:none){
+      .stage{padding:56px 18px;}
+      .stage-inner{width:min(var(--max), calc(100vw - 36px));}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stage" aria-hidden="true">
+    <div class="stage-inner" id="stage"></div>
+  </div>
+
+  <main class="stack" id="stack">
+
+    <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <svg width="450" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 545.5965 61.9692">
+          <defs><style>.cls-1{fill:#fff;}</style></defs>
+          <path class="cls-1" d="M119.2177,31.0066c.1743,10.7215-6.7734,20.9556-16.6505,24.9462-17.7086,7.3063-37.2863-5.7914-37.2216-24.9463.0474-19.5804,19.272-32.117,37.3422-24.9812,9.9531,3.9931,16.6882,14.2611,16.5299,24.9813ZM92.25,52.3074c15.0734.0213,24.2599-15.9856,18.8844-29.4898-5.3648-13.7808-22.8635-17.7132-33.2628-6.9417-12.4627,13.0513-4.327,36.3303,14.3784,36.4315Z"/>
+          <path class="cls-1" d="M48.9558,56.538V5.0358h5.9218v51.5022h-5.9218Z"/>
+          <path class="cls-1" d="M448.7566,35.0679c.0005,3.1216-.1976,6.2228-1.0444,9.2454-1.3584,4.8488-4.288,8.2639-9.1929,9.7634-3.7165,1.1362-7.5197,1.1952-11.3109.4709-2.6968-.5152-5.0595-1.7695-7.0171-3.7365-1.565-1.5725-2.545-3.4859-3.3183-5.5295-1.1003-2.9081-1.4437-5.94-1.4475-9.0185-.0123-10.2155-.005-31.2824-.005-31.6464h-3.1973c0,.3338-.0059,19.9026.0054,29.3956.0021,1.7427.0519,3.4862.1185,5.2278.1313,3.4329,1.0162,6.674,2.5391,9.75,1.4191,2.8664,3.57,5.0036,6.3929,6.49,2.6469,1.3937,5.4934,2.0144,8.4515,2.2396,2.7792.2115,5.5296-.0094,8.2455-.5838,3.3952-.7181,6.3831-2.2341,8.7964-4.7688,1.9114-2.0077,3.1602-4.3986,3.9316-7.0422.9425-3.2293,1.2466-6.544,1.2476-9.8931.0032-10.0162.0016-30.5322.0016-30.814h-3.1973c0,.3396-.0011,20.6084.0006,30.4502Z"/>
+          <path class="cls-1" d="M297.6069,4.6886h-3.2135v52.03h32.804v-2.7797h-29.5905V4.6886Z"/>
+          <path class="cls-1" d="M186.1746,42.2875c-.2143-9.8745-11.2489-12.3184-19.1219-13.7908-4.364-1.0531-9.0708-1.5109-12.818-4.1921-6.9048-4.6682-3.3446-15.6651,4.2704-17.329,9.3788-2.9988,22.9207.6336,23.1712,12.1949h3.2434c.2848-20.7871-39.3194-21.7172-37.5153-.6781,2.3459,17.5969,29.0573,7.6161,35.1555,21.6816,4.4514,21.0106-35.9949,19.4884-33.6133-.6421h-3.1227c-2.3954,22.6822,40.959,25.8331,40.3506,2.7555Z"/>
+          <path class="cls-1" d="M235.2409,36.4019c-.7963,10.7788-9.4596,20.4179-22.1881,18.5252-4.267-.6699-7.9396-2.5486-11.0194-5.5555-8.4277-8.3067-9.2443-23.8107-3.1214-33.6446,8.165-14.0853,32.3929-13.0027,35.4923,4.3011h3.1832c-1.4393-8.7916-7.9468-15.2008-16.7344-16.4754-3.2091-.4369-5.9905-.2858-7.5887-.1182-3.2016.3344-6.2378,1.2857-9.0329,2.8797-15.9503,8.7876-16.6947,36.5843-2.2659,47.0875,5.0544,3.6461,10.7258,4.9953,16.8994,4.4121,10.8538-.9087,18.8599-10.9228,19.5921-21.4119h-3.2163Z"/>
+          <path class="cls-1" d="M248.3555,4.6886h-3.2472c0,.2687-.0084,18.2955.0055,27.0254.0038,2.4005.0513,4.8015.1187,7.2012.1021,3.6274,1.0053,7.0569,2.6421,10.2959,4.1123,8.2772,14.7985,9.8425,23.0406,8.0502,6.4959-1.4215,10.8015-5.2851,12.7829-11.6537,1.0043-3.228,1.3234-6.5631,1.3321-9.9215.0246-9.4344.0092-30.9975.0092-30.9975h-3.2534c0,.3224-.0097,21.8908-.029,32.3966-.0047,2.5611-.3509,5.0863-1.0696,7.5459-1.3958,4.7767-4.3644,8.103-9.1916,9.5673-5.9947,1.7057-13.746,1.4242-18.3391-3.2743-3.6668-3.8487-4.7957-9.3668-4.7946-14.5191,0,0-.0066-31.7164-.0066-31.7164Z"/>
+          <path class="cls-1" d="M367.9282,15.2043c-.9602-4.6828-3.6751-7.9331-8.256-9.5088-2.1923-.7541-4.4853-.9725-6.7801-.9852-6.9938-.0387-21.9063-.014-21.9063-.014l.0385,52.0223h3.2158v-23.1763c5.988,0,11.9581.0006,17.9442-.0004,2.4325-.0004,4.8286-.2769,7.1414-1.0574,7.5881-2.2861,10.1506-10.0582,8.6025-17.2803ZM364.702,22.3074c-1.1203,4.4435-4.0342,7.0225-8.401,8.0878-1.0923.2665-2.2121.3518-3.3393.3509-5.9685-.005-18.3965-.0018-18.7135-.0018V7.485c6.4906.0319,12.9752-.0329,19.4651.0267,2.3196.0176,4.5425.5185,6.5208,1.8548,4.2211,2.7238,5.6003,8.2349,4.4679,12.9409Z"/>
+          <path class="cls-1" d="M368.3445,4.6886v2.7071h18.3141l.0012,49.3229h3.1998l.0015-49.3397h18.433v-2.6903h-39.9496Z"/>
+          <path class="cls-1" d="M498.7507,53.0284c-.2182-9.0548,1.6278-19.8611-10.2712-21.4459,7.4549-1.742,11.6847-7.3054,11.0189-14.9534-.1702-4.9643-3.3704-9.1458-8.0664-10.689-2.7436-.9973-5.6098-1.2852-8.4956-1.3016-7.2292-.0412-14.461-.0112-21.6906-.0116v52.2187c1.0757.0083,2.1512.0013,3.227,0v-23.745c6.4225-.0002,12.8245.0038,19.2447-.0018,5.2032-.1252,10.533,2.066,11.3094,7.9092.6268,4.4474.3848,8.9751.4628,13.4561l-.001-.001v2.3468h3.2618v-3.7821.0006ZM483.2066,30.2873c-5.9433-.0025-18.3749-.001-18.7209-.001V7.4358s13.4018-.0278,19.1871.0158c2.2602.0171,4.4938.3697,6.5786,1.3148,5.8636,2.4137,7.3081,9.114,5.1704,14.652-1.8936,5.0024-7.2164,6.9074-12.2152,6.869Z"/>
+          <polygon class="cls-1" points="498.7677 56.8099 498.7677 56.7996 498.7506 56.8099 498.7677 56.8099"/>
+          <path class="cls-1" d="M510.6374,54.0081v-22.9396h29.8825v-2.8249h-29.8932V7.3292h31.8397v-2.6957l-.0168.0033v-.0033h-35.0294c-.0004,17.3749-.0004,34.7498-.0004,52.1964h35.3909v-2.8218h-32.1734Z"/>
+          <path class="cls-1" d="M17.284,56.6252c6.1239-.0392,9.0569-.1564,13.3375-2.2746,11.0302-5.4584,8.3007-16.4606,4.9052-20.3996-3.3955-3.939-8.7643-4.514-8.7643-4.514,0,0,4.819-2.0121,7.2599-5.6233,1.2082-1.7875,4.0273-7.7755-.7327-13.4962-4.76-5.7206-14.6797-5.2699-14.6797-5.2699H2.8108v51.5814l14.4731-.0037ZM9.146,10.8077c.1593,0,7.437-.0197,10.9558.0529,4.7805.0644,9.4991,2.5787,9.1603,7.8826-.0494,7.8488-7.7963,8.29-13.8592,8.1262-1.8724-.0024-6.0103-.0005-6.2569-.0005V10.8077ZM9.1209,32.541l11.2968.0353c2.1211.0392,4.2689.2367,6.2032,1.1872,4.148,1.8304,5.9742,5.8518,5.0774,10.1336-1.2146,5.417-7.5204,7.0654-12.3973,6.9797-3.0975-.0154-9.8345-.0048-10.18-.0048v-18.3309Z"/>
+        </svg>
+        <div class="spacer-16"></div>
+        <p class="lead"><span class="bold">BLACK</span> CARD</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <p class="lead">With nearly four decades of redefining nail care, we are proud to have launched Bio Sculpture’s first standalone UK salon in Selfridges, London.</p>
+        <div class="spacer-32"></div>
+        <p class="lead">Exclusive to you, this card <span class="bold">unlocks</span> insider access to complimentary, health-driven manicures until November 2026.</p>
+        <div class="spacer-32"></div>
+        <p class="lead">From prescriptive manicures to file and polish, we are ready to welcome you.</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel><div class="tpl" data-tpl><h2>APPOINTMENT <span class="bold">PERKS</span></h2></div></section>
+    <section class="panel" data-panel><div class="tpl" data-tpl><p class="lead"><span class="bold">Complimentary manicure removals</span> every 3 weeks</p></div></section>
+    <section class="panel" data-panel><div class="tpl" data-tpl><p class="lead"><span class="bold">Open everyday</span>, Monday to Sunday</p></div></section>
+    <section class="panel" data-panel><div class="tpl" data-tpl><p class="lead"><span class="bold">Signature nail art</span> and limited designs</p></div></section>
+
+    <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <p class="lead"><span class="bold">Expert nail technicians</span></p>
+        <p class="text-small">who can offer tailored advice on every visit</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <p class="lead"><span class="bold">Silent appointments</span> available</p>
+        <p>We get it, sometimes you just need to detox and unwind.<br/>Utilise our complimentary headphones & tablets</p>
+      </div>
+    </section>
+
+    <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <h2><span class="bold">HOW TO BOOK</span></h2>
+         <div class="spacer-32"></div>
+         <p class="lead">Please follow the link to access our booking system <a href="#bookinglink">here.</a></p>
+        <div class="spacer-32"></div>
+        <p class="lead">Select your preferred manicure option (plus removals if required), then choose a date and time that suits you.</p>
+        <div class="spacer-32"></div>
+        <p class="lead" You’ll be asked to enter your card details to secure the booking. No payment will be taken - your details are used only to hold the appointment.</p>
+         <div class="spacer-32"></div>
+        <p class="lead">To enjoy your complimentary service, please remember to bring your black card to every appointment. If you can’t attend or do not notify us in advance, a charge may apply. Please email <a href="mailto:selfridges@biosculpture.co.uk">selfridges@biosculpture.co.uk</a> for on-hand assistance.</p>
+      </div>
+    </section>
+
+       <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <h2>COUNTER <span class="bold">OPENING HOURS</span></h2>
+        <div class="hours">
+          <div class="row"><div class="day">Mon–Fri</div><div>10 am–10 pm</div></div>
+          <div class="row"><div class="day">Saturday</div><div>10 am–8 pm</div></div>
+          <div class="row"><div class="day">Sunday</div><div>12–6 pm</div></div>
+        </div>
+      </div>
+    </section>
+
+          <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <h2> <span class="bold">WHERE TO FIND US </span></h2>
+         <div class="spacer-32"></div>
+         <p class="lead">Bio Sculpture Salon at Selfridges, <br/>
+             400 Oxford Street, London, W1A 1AB</p>
+        <div class="spacer-32"></div>
+        <p class="italic">The Bio Sculpture salon is located within the Selfridges Beauty Workshop on the ground floor of Selfridges London. For easiest access, enter via the Duke Street side entrance, and walk straight up through the Accessories Hall and into the Beauty Workshop. Our neighbours are Blink Brow Bar and the Beauty Concierge.</p>
+      </div>
+    </section>
+
+
+          <section class="panel" data-panel>
+      <div class="tpl" data-tpl>
+        <h2>COUNTER <span class="bold">OPENING HOURS 4 </span></h2>
+        <div class="hours">
+          <div class="row"><div class="day">Mon–Fri</div><div>10 am–10 pm</div></div>
+          <div class="row"><div class="day">Saturday</div><div>10 am–8 pm</div></div>
+          <div class="row"><div class="day">Sunday</div><div>12–6 pm</div></div>
+        </div>
+      </div>
+    </section>
+
+
+ 
+
+  </main>
+
+  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+  <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/gsap@3/dist/ScrollToPlugin.min.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouch =
+      (window.matchMedia && window.matchMedia("(hover: none)").matches) ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+
+    const stack = document.getElementById("stack");
+    const stage = document.getElementById("stage");
+    const panels = gsap.utils.toArray("[data-panel]");
+    const tpls = gsap.utils.toArray("[data-tpl]");
+
+    document.documentElement.style.setProperty("--panels", String(panels.length));
+
+    let st;
+
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+    function setStageContent(index) {
+      const tpl = tpls[index];
+      if (!tpl) return;
+
+      while (stage.firstChild) stage.removeChild(stage.firstChild);
+
+      const frag = document.createDocumentFragment();
+      Array.from(tpl.childNodes).forEach((node) => {
+        frag.appendChild(node.cloneNode(true));
+      });
+      stage.appendChild(frag);
+    }
+
+    function fadeTo(index) {
+      if (prefersReducedMotion) {
+        setStageContent(index);
+        gsap.set(stage, { opacity: 1 });
+        return;
+      }
+
+      gsap.killTweensOf(stage);
+
+      gsap.to(stage, {
+        opacity: 0,
+        duration: 0.18,
+        ease: "power1.out",
+        onComplete: () => {
+          setStageContent(index);
+          gsap.to(stage, { opacity: 1, duration: 0.28, ease: "power2.out" });
+        }
+      });
+    }
+
+    function buildSnap() {
+      if (st) st.kill();
+
+      buildSnap._lastIdx = -1;
+
+      st = ScrollTrigger.create({
+        id: "panel-snap",
+        trigger: stack,
+        start: "top top",
+        end: () => "+=" + (panels.length * innerHeight),
+        scrub: 1,
+        snap: prefersReducedMotion ? false : {
+          snapTo: (value) => {
+            const raw = value * (panels.length - 1);
+            return Math.round(raw) / (panels.length - 1);
+          },
+          duration: { min: 0.25, max: 0.6 },
+          delay: 0.05,
+          ease: "power2.out"
+        },
+        onUpdate: (self) => {
+          const idx = clamp(Math.round(self.progress * (panels.length - 1)), 0, panels.length - 1);
+          if (idx !== buildSnap._lastIdx) {
+            buildSnap._lastIdx = idx;
+            fadeTo(idx);
+          }
+        }
+      });
+
+      ScrollTrigger.refresh();
+    }
+
+    function setupStage() {
+      setStageContent(0);
+      gsap.set(stage, { opacity: 1 });
+    }
+
+    function setupMobileSwipePaging() {
+      if (!isTouch) return;
+
+      let locked = false;
+      let startY = 0;
+      let startX = 0;
+      let startT = 0;
+
+      const currentIndex = () => {
+        if (!st) return 0;
+        const p = st.progress || 0;
+        const raw = p * (panels.length - 1);
+        return clamp(Math.round(raw), 0, panels.length - 1);
+      };
+
+      const goToIndex = (i) => {
+        if (!st || locked) return;
+        locked = true;
+
+        const idx = clamp(i, 0, panels.length - 1);
+        const targetProgress = idx / (panels.length - 1);
+
+        st.scroll(st.start + targetProgress * (st.end - st.start));
+        gsap.delayedCall(0.35, () => (locked = false));
+      };
+
+      window.addEventListener("touchstart", (e) => {
+        if (!e.touches || !e.touches.length) return;
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        startT = performance.now();
+      }, { passive: true });
+
+      window.addEventListener("touchend", (e) => {
+        if (locked) return;
+        if (!e.changedTouches || !e.changedTouches.length) return;
+
+        const endY = e.changedTouches[0].clientY;
+        const endX = e.changedTouches[0].clientX;
+
+        const dy = startY - endY;
+        const dx = startX - endX;
+
+        const dt = Math.max(1, performance.now() - startT);
+        const v = Math.abs(dy) / dt;
+
+        if (Math.abs(dx) > Math.abs(dy)) return;
+
+        const minSwipe = 40;
+        const minVelocity = 0.25;
+
+        if (Math.abs(dy) > minSwipe && v > minVelocity) {
+          const idx = currentIndex();
+          goToIndex(dy > 0 ? idx + 1 : idx - 1);
+        }
+      }, { passive: true });
+    }
+
+    function setupDesktopRightClickForward() {
+      if (isTouch) return;
+
+      const currentIndex = () => {
+        if (!st) return 0;
+        const p = st.progress || 0;
+        const raw = p * (panels.length - 1);
+        return clamp(Math.round(raw), 0, panels.length - 1);
+      };
+
+      const goToIndex = (i) => {
+        if (!st) return;
+        const idx = clamp(i, 0, panels.length - 1);
+        const targetProgress = idx / (panels.length - 1);
+        st.scroll(st.start + targetProgress * (st.end - st.start));
+      };
+
+      window.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const idx = currentIndex();
+        goToIndex(idx + 1);
+      });
+    }
+
+    setupStage();
+    buildSnap();
+    setupMobileSwipePaging();
+    setupDesktopRightClickForward();
+
+    let resizeRaf = 0;
+    window.addEventListener("resize", () => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => {
+        buildSnap();
+      });
+    });
+  </script>
+
+</body>
+</html>
