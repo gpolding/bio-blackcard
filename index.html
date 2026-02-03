@@ -333,11 +333,24 @@
     });
   }
 
+  let activeIndex = 0;
+  let isSwapping = false;
+  let pendingIndex = null;
+
   // Stage swap is fade only now
   function swapTo(index) {
+    if (index === activeIndex && !isSwapping) return;
+    if (isSwapping) {
+      pendingIndex = index;
+      return;
+    }
+    isSwapping = true;
+
     if (prefersReducedMotion) {
       setStageContent(index);
       gsap.set(stage, { opacity: 1, scale: 1, filter: "blur(0px)" });
+      activeIndex = index;
+      isSwapping = false;
       return;
     }
 
@@ -356,7 +369,18 @@
           opacity: 1,
           duration: 0.22,
           ease: "power2.out",
-          onComplete: playSequenceIn
+          onComplete: () => {
+            activeIndex = index;
+            isSwapping = false;
+            playSequenceIn();
+            if (pendingIndex !== null && pendingIndex !== activeIndex) {
+              const next = pendingIndex;
+              pendingIndex = null;
+              swapTo(next);
+            } else {
+              pendingIndex = null;
+            }
+          }
         });
       }
     });
@@ -407,6 +431,7 @@
     setStageContent(0);
     gsap.set(stage, { opacity: 1, scale: 1, filter: "blur(0px)" });
     playSequenceIn();
+    activeIndex = 0;
   }
 
   function setupMobileSwipePaging() {
