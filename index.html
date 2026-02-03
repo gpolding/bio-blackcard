@@ -245,190 +245,297 @@
   <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
   <script src="https://unpkg.com/gsap@3/dist/ScrollToPlugin.min.js"></script>
 
-  <script>
-    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+ <script>
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isTouch =
-      (window.matchMedia && window.matchMedia("(hover: none)").matches) ||
-      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isTouch =
+    (window.matchMedia && window.matchMedia("(hover: none)").matches) ||
+    (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
-    const stack = document.getElementById("stack");
-    const stage = document.getElementById("stage");
-    const panels = gsap.utils.toArray("[data-panel]");
-    const tpls = gsap.utils.toArray("[data-tpl]");
+  const stack = document.getElementById("stack");
+  const stage = document.getElementById("stage");
+  const panels = gsap.utils.toArray("[data-panel]");
+  const tpls = gsap.utils.toArray("[data-tpl]");
 
-    document.documentElement.style.setProperty("--panels", String(panels.length));
+  document.documentElement.style.setProperty("--panels", String(panels.length));
 
-    let st;
+  let st;
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  // Cross-panel swap feel
+  // "fade", "blur", "zoom", "zoomBlur"
+  const TRANSITION = "zoomBlur";
 
-    function setStageContent(index) {
-      const tpl = tpls[index];
-      if (!tpl) return;
+  // Per-line sequencing feel
+  const SEQ_STAGGER = 0.09;      // time between lines
+  const SEQ_DURATION = 0.32;     // per line duration
+  const SEQ_BLUR_IN = 10;        // px blur at start
+  const SEQ_SCALE_IN = 1.012;    // subtle
 
-      while (stage.firstChild) stage.removeChild(stage.firstChild);
+  function setStageContent(index) {
+    const tpl = tpls[index];
+    if (!tpl) return;
 
-      const frag = document.createDocumentFragment();
-      Array.from(tpl.childNodes).forEach((node) => {
-        frag.appendChild(node.cloneNode(true));
-      });
-      stage.appendChild(frag);
+    while (stage.firstChild) stage.removeChild(stage.firstChild);
+
+    const frag = document.createDocumentFragment();
+    Array.from(tpl.childNodes).forEach((node) => {
+      frag.appendChild(node.cloneNode(true));
+    });
+    stage.appendChild(frag);
+  }
+
+  function getSequenceItems() {
+    // Treat hours block as one item
+    // Ignore spacer divs
+    const items = [];
+
+    const svg = stage.querySelector("svg");
+    if (svg) items.push(svg);
+
+    stage.querySelectorAll("h1,h2,p,.hours").forEach((el) => {
+      if (el.classList.contains("spacer-16")) return;
+      if (el.classList.contains("spacer-24")) return;
+      if (el.classList.contains("spacer-32")) return;
+
+      // Skip paragraphs that are empty
+      if (el.tagName === "P" && !el.textContent.trim()) return;
+
+      // Avoid double-pushing svg if it matches selector in some browsers
+      if (el.tagName === "svg") return;
+
+      items.push(el);
+    });
+
+    // Remove duplicates while keeping order
+    const seen = new Set();
+    return items.filter((el) => {
+      if (seen.has(el)) return false;
+      seen.add(el);
+      return true;
+    });
+  }
+
+  function playSequenceIn() {
+    if (prefersReducedMotion) return;
+
+    const items = getSequenceItems();
+    if (!items.length) return;
+
+    gsap.killTweensOf(items);
+
+    gsap.set(items, {
+      opacity: 0,
+      filter: `blur(${SEQ_BLUR_IN}px)`,
+      scale: SEQ_SCALE_IN
+    });
+
+    gsap.to(items, {
+      opacity: 1,
+      filter: "blur(0px)",
+      scale: 1,
+      duration: SEQ_DURATION,
+      ease: "power2.out",
+      stagger: SEQ_STAGGER,
+      overwrite: "auto"
+    });
+  }
+
+  function animateOut() {
+    if (TRANSITION === "fade") {
+      return gsap.to(stage, { opacity: 0, duration: 0.18, ease: "power1.out" });
+    }
+    if (TRANSITION === "blur") {
+      return gsap.to(stage, { opacity: 0, filter: "blur(10px)", duration: 0.2, ease: "power1.out" });
+    }
+    if (TRANSITION === "zoom") {
+      return gsap.to(stage, { opacity: 0, scale: 0.985, duration: 0.2, ease: "power1.out" });
+    }
+    return gsap.to(stage, { opacity: 0, scale: 0.985, filter: "blur(10px)", duration: 0.22, ease: "power1.out" });
+  }
+
+  function prepStageForIn() {
+    if (TRANSITION === "fade") gsap.set(stage, { opacity: 0, scale: 1, filter: "blur(0px)" });
+    else if (TRANSITION === "blur") gsap.set(stage, { opacity: 0, scale: 1, filter: "blur(10px)" });
+    else if (TRANSITION === "zoom") gsap.set(stage, { opacity: 0, scale: 1.015, filter: "blur(0px)" });
+    else gsap.set(stage, { opacity: 0, scale: 1.015, filter: "blur(10px)" });
+  }
+
+  function animateInContainer() {
+    if (TRANSITION === "fade") {
+      return gsap.to(stage, { opacity: 1, duration: 0.28, ease: "power2.out" });
+    }
+    if (TRANSITION === "blur") {
+      return gsap.to(stage, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power2.out" });
+    }
+    if (TRANSITION === "zoom") {
+      return gsap.to(stage, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" });
+    }
+    return gsap.to(stage, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.32, ease: "power2.out" });
+  }
+
+  function swapTo(index) {
+    if (prefersReducedMotion) {
+      setStageContent(index);
+      gsap.set(stage, { opacity: 1, scale: 1, filter: "blur(0px)" });
+      return;
     }
 
-    function fadeTo(index) {
-      if (prefersReducedMotion) {
-        setStageContent(index);
-        gsap.set(stage, { opacity: 1 });
-        return;
-      }
+    gsap.killTweensOf(stage);
 
-      gsap.killTweensOf(stage);
+    animateOut().eventCallback("onComplete", () => {
+      setStageContent(index);
 
-      gsap.to(stage, {
-        opacity: 0,
-        duration: 0.18,
-        ease: "power1.out",
-        onComplete: () => {
-          setStageContent(index);
-          gsap.to(stage, { opacity: 1, duration: 0.28, ease: "power2.out" });
-        }
-      });
-    }
-
-    function buildSnap() {
-      if (st) st.kill();
-
-      buildSnap._lastIdx = -1;
-
-      st = ScrollTrigger.create({
-        id: "panel-snap",
-        trigger: stack,
-        start: "top top",
-        end: () => "+=" + (panels.length * innerHeight),
-        scrub: 1,
-        snap: prefersReducedMotion ? false : {
-          snapTo: (value) => {
-            const raw = value * (panels.length - 1);
-            return Math.round(raw) / (panels.length - 1);
-          },
-          duration: { min: 0.25, max: 0.6 },
-          delay: 0.05,
-          ease: "power2.out"
-        },
-        onUpdate: (self) => {
-          const idx = clamp(Math.round(self.progress * (panels.length - 1)), 0, panels.length - 1);
-          if (idx !== buildSnap._lastIdx) {
-            buildSnap._lastIdx = idx;
-            fadeTo(idx);
-          }
-        }
-      });
-
-      ScrollTrigger.refresh();
-    }
-
-    function setupStage() {
-      setStageContent(0);
-      gsap.set(stage, { opacity: 1 });
-    }
-
-    function setupMobileSwipePaging() {
-      if (!isTouch) return;
-
-      let locked = false;
-      let startY = 0;
-      let startX = 0;
-      let startT = 0;
-
-      const currentIndex = () => {
-        if (!st) return 0;
-        const p = st.progress || 0;
-        const raw = p * (panels.length - 1);
-        return clamp(Math.round(raw), 0, panels.length - 1);
-      };
-
-      const goToIndex = (i) => {
-        if (!st || locked) return;
-        locked = true;
-
-        const idx = clamp(i, 0, panels.length - 1);
-        const targetProgress = idx / (panels.length - 1);
-
-        st.scroll(st.start + targetProgress * (st.end - st.start));
-        gsap.delayedCall(0.35, () => (locked = false));
-      };
-
-      window.addEventListener("touchstart", (e) => {
-        if (!e.touches || !e.touches.length) return;
-        startY = e.touches[0].clientY;
-        startX = e.touches[0].clientX;
-        startT = performance.now();
-      }, { passive: true });
-
-      window.addEventListener("touchend", (e) => {
-        if (locked) return;
-        if (!e.changedTouches || !e.changedTouches.length) return;
-
-        const endY = e.changedTouches[0].clientY;
-        const endX = e.changedTouches[0].clientX;
-
-        const dy = startY - endY;
-        const dx = startX - endX;
-
-        const dt = Math.max(1, performance.now() - startT);
-        const v = Math.abs(dy) / dt;
-
-        if (Math.abs(dx) > Math.abs(dy)) return;
-
-        const minSwipe = 40;
-        const minVelocity = 0.25;
-
-        if (Math.abs(dy) > minSwipe && v > minVelocity) {
-          const idx = currentIndex();
-          goToIndex(dy > 0 ? idx + 1 : idx - 1);
-        }
-      }, { passive: true });
-    }
-
-    function setupDesktopRightClickForward() {
-      if (isTouch) return;
-
-      const currentIndex = () => {
-        if (!st) return 0;
-        const p = st.progress || 0;
-        const raw = p * (panels.length - 1);
-        return clamp(Math.round(raw), 0, panels.length - 1);
-      };
-
-      const goToIndex = (i) => {
-        if (!st) return;
-        const idx = clamp(i, 0, panels.length - 1);
-        const targetProgress = idx / (panels.length - 1);
-        st.scroll(st.start + targetProgress * (st.end - st.start));
-      };
-
-      window.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-        const idx = currentIndex();
-        goToIndex(idx + 1);
-      });
-    }
-
-    setupStage();
-    buildSnap();
-    setupMobileSwipePaging();
-    setupDesktopRightClickForward();
-
-    let resizeRaf = 0;
-    window.addEventListener("resize", () => {
-      cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(() => {
-        buildSnap();
+      // Container comes in first
+      prepStageForIn();
+      animateInContainer().eventCallback("onComplete", () => {
+        // Then lines sequence in
+        playSequenceIn();
       });
     });
-  </script>
+  }
+
+  function indexFromScroll(self) {
+    const total = panels.length;
+    const dist = Math.max(1, self.end - self.start);
+    const px = self.scroll() - self.start;
+    const unit = dist / total;
+    const idx = Math.floor(px / unit + 0.00001);
+    return clamp(idx, 0, total - 1);
+  }
+
+  function buildSnap() {
+    if (st) st.kill();
+
+    let lastIdx = -1;
+
+    st = ScrollTrigger.create({
+      id: "panel-snap",
+      trigger: stack,
+      start: "top top",
+      end: () => "+=" + Math.max(1, stack.scrollHeight - innerHeight),
+      scrub: 1,
+      snap: prefersReducedMotion ? false : {
+        snapTo: (value) => {
+          const raw = value * (panels.length - 1);
+          return Math.round(raw) / (panels.length - 1);
+        },
+        duration: { min: 0.25, max: 0.6 },
+        delay: 0.05,
+        ease: "power2.out"
+      },
+      onUpdate: (self) => {
+        const idx = indexFromScroll(self);
+        if (idx !== lastIdx) {
+          lastIdx = idx;
+          swapTo(idx);
+        }
+      }
+    });
+
+    ScrollTrigger.refresh();
+  }
+
+  function setupStage() {
+    setStageContent(0);
+    gsap.set(stage, { opacity: 1, scale: 1, filter: "blur(0px)" });
+    playSequenceIn();
+  }
+
+  function setupMobileSwipePaging() {
+    if (!isTouch) return;
+
+    let locked = false;
+    let startY = 0;
+    let startX = 0;
+    let startT = 0;
+
+    const currentIndex = () => {
+      if (!st) return 0;
+      return indexFromScroll(st);
+    };
+
+    const goToIndex = (i) => {
+      if (!st || locked) return;
+      locked = true;
+
+      const idx = clamp(i, 0, panels.length - 1);
+      const unit = (st.end - st.start) / panels.length;
+      const target = st.start + idx * unit + 1;
+
+      st.scroll(target);
+      gsap.delayedCall(0.35, () => (locked = false));
+    };
+
+    window.addEventListener("touchstart", (e) => {
+      if (!e.touches || !e.touches.length) return;
+      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
+      startT = performance.now();
+    }, { passive: true });
+
+    window.addEventListener("touchend", (e) => {
+      if (locked) return;
+      if (!e.changedTouches || !e.changedTouches.length) return;
+
+      const endY = e.changedTouches[0].clientY;
+      const endX = e.changedTouches[0].clientX;
+
+      const dy = startY - endY;
+      const dx = startX - endX;
+
+      const dt = Math.max(1, performance.now() - startT);
+      const v = Math.abs(dy) / dt;
+
+      if (Math.abs(dx) > Math.abs(dy)) return;
+
+      const minSwipe = 40;
+      const minVelocity = 0.25;
+
+      if (Math.abs(dy) > minSwipe && v > minVelocity) {
+        const idx = currentIndex();
+        goToIndex(dy > 0 ? idx + 1 : idx - 1);
+      }
+    }, { passive: true });
+  }
+
+  function setupDesktopRightClickForward() {
+    if (isTouch) return;
+
+    const currentIndex = () => {
+      if (!st) return 0;
+      return indexFromScroll(st);
+    };
+
+    const goToIndex = (i) => {
+      if (!st) return;
+      const idx = clamp(i, 0, panels.length - 1);
+      const unit = (st.end - st.start) / panels.length;
+      st.scroll(st.start + idx * unit + 1);
+    };
+
+    window.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const idx = currentIndex();
+      goToIndex(idx + 1);
+    });
+  }
+
+  setupStage();
+  buildSnap();
+  setupMobileSwipePaging();
+  setupDesktopRightClickForward();
+
+  let resizeRaf = 0;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      buildSnap();
+    });
+  });
+</script>
+
 
 </body>
 </html>
