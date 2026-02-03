@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b0b0b">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bio Sculpture">
 
   <title>Bio Sculpture Black Card, Scroll Panels</title>
 
@@ -19,6 +20,17 @@
       --fg:rgba(255,255,255,.9);
       --muted:rgba(255,255,255,.72);
       --max:860px;
+
+      --vh: 100vh;
+      --padY: 64px;
+      --padX: 20px;
+    }
+
+    @supports (height: 100svh){
+      :root{ --vh: 100svh; }
+    }
+    @supports (height: 100dvh){
+      :root{ --vh: 100dvh; }
     }
 
     *{box-sizing:border-box;}
@@ -41,27 +53,31 @@
 
     .stack{
       position:relative;
-      height: calc(var(--panels, 1) * 100vh);
+      height: calc(var(--panels, 1) * var(--vh));
     }
 
-    .panel{height:100vh;}
+    .panel{ height: var(--vh); }
 
     .stage{
       position:fixed;
       inset:0;
       display:grid;
       place-items:center;
-      padding:64px 20px;
       pointer-events:none;
       z-index:999;
+
+      padding:
+        calc(var(--padY) + env(safe-area-inset-top))
+        var(--padX)
+        calc(var(--padY) + env(safe-area-inset-bottom))
+        var(--padX);
     }
 
     .stage-inner{
       width:min(var(--max), calc(100vw - 48px));
       text-align:center;
       pointer-events:auto;
-      will-change: opacity, transform, filter;
-      transform-origin: 50% 50%;
+      will-change: opacity;
     }
 
     .tpl{display:none;}
@@ -120,37 +136,35 @@
     .day{font-weight:600;color:var(--fg);}
 
     @media (hover:none){
-      .stage{padding:56px 18px;}
+      :root{
+        --padY: 56px;
+        --padX: 18px;
+      }
       .stage-inner{width:min(var(--max), calc(100vw - 36px));}
     }
 
-    .stage{
-  padding: calc(64px + env(safe-area-inset-top)) 20px calc(64px + env(safe-area-inset-bottom)) 20px;
-}
+    .fs-btn{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      z-index:1000;
+      padding:12px 14px;
+      border:1px solid rgba(255,255,255,.2);
+      border-radius:14px;
+      background:#0b0b0b;
+      color:rgba(255,255,255,.9);
+      font:600 14px/1.1 Poppins,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
 
-.fs-btn{
-  position:fixed;
-  left:12px;
-  right:12px;
-  bottom:12px;
-  z-index:1000;
-  padding:12px 14px;
-  border:1px solid rgba(255,255,255,.2);
-  border-radius:14px;
-  background:#0b0b0b;
-  color:rgba(255,255,255,.9);
-  font:600 14px/1.1 Poppins,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-}
-
-@media (hover:hover){
-  .fs-btn{ display:none; }
-}
-
-
+    @media (hover:hover){
+      .fs-btn{ display:none; }
+    }
   </style>
 </head>
+
 <body>
-<button id="fsBtn" class="fs-btn" type="button">Tap for full screen</button>
+  <button id="fsBtn" class="fs-btn" type="button">Tap for full screen</button>
 
   <div class="stage" aria-hidden="true">
     <div class="stage-inner" id="stage"></div>
@@ -245,312 +259,298 @@
       </div>
     </section>
 
-
   </main>
 
   <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
   <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
   <script src="https://unpkg.com/gsap@3/dist/ScrollToPlugin.min.js"></script>
 
-<script>
-  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  <script>
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const isTouch =
-    (window.matchMedia && window.matchMedia("(hover: none)").matches) ||
-    (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouch =
+      (window.matchMedia && window.matchMedia("(hover: none)").matches) ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
-  const stack = document.getElementById("stack");
-  const stage = document.getElementById("stage");
-  const panels = gsap.utils.toArray("[data-panel]");
-  const tpls = gsap.utils.toArray("[data-tpl]");
+    const stack = document.getElementById("stack");
+    const stage = document.getElementById("stage");
+    const panels = gsap.utils.toArray("[data-panel]");
+    const tpls = gsap.utils.toArray("[data-tpl]");
 
-  document.documentElement.style.setProperty("--panels", String(panels.length));
+    document.documentElement.style.setProperty("--panels", String(panels.length));
 
-  let st;
-  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+    let st;
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-  // Per-line sequencing feel
-  const SEQ_STAGGER = 0.09;
-  const SEQ_DURATION = 0.32;
-  const SEQ_BLUR_IN = 10;
-  const SEQ_SCALE_IN = 1.012;
+    const SEQ_STAGGER = 0.09;
+    const SEQ_DURATION = 0.32;
+    const SEQ_BLUR_IN = 10;
+    const SEQ_SCALE_IN = 1.012;
 
-  function setStageContent(index) {
-    const tpl = tpls[index];
-    if (!tpl) return;
+    function setStageContent(index) {
+      const tpl = tpls[index];
+      if (!tpl) return;
 
-    while (stage.firstChild) stage.removeChild(stage.firstChild);
+      while (stage.firstChild) stage.removeChild(stage.firstChild);
 
-    const frag = document.createDocumentFragment();
-    Array.from(tpl.childNodes).forEach((node) => {
-      frag.appendChild(node.cloneNode(true));
-    });
-    stage.appendChild(frag);
-  }
-
-  function getSequenceItems() {
-    const items = [];
-
-    const svg = stage.querySelector("svg");
-    if (svg) items.push(svg);
-
-    stage.querySelectorAll("h1,h2,p,.hours").forEach((el) => {
-      if (el.tagName === "P" && !el.textContent.trim()) return;
-      items.push(el);
-    });
-
-    const seen = new Set();
-    return items.filter((el) => {
-      if (seen.has(el)) return false;
-      seen.add(el);
-      return true;
-    });
-  }
-
-  function playSequenceIn() {
-    if (prefersReducedMotion) return;
-
-    const items = getSequenceItems();
-    if (!items.length) return;
-
-    gsap.killTweensOf(items);
-
-    gsap.set(items, {
-      opacity: 0,
-      filter: `blur(${SEQ_BLUR_IN}px)`,
-      scale: SEQ_SCALE_IN
-    });
-
-    gsap.to(items, {
-      opacity: 1,
-      filter: "blur(0px)",
-      scale: 1,
-      duration: SEQ_DURATION,
-      ease: "power2.out",
-      stagger: SEQ_STAGGER,
-      overwrite: "auto"
-    });
-  }
-
-  let activeIndex = 0;
-  let isSwapping = false;
-  let pendingIndex = null;
-
-  // Stage swap is fade only now
-  function swapTo(index) {
-    if (index === activeIndex && !isSwapping) return;
-    if (isSwapping) {
-      pendingIndex = index;
-      return;
-    }
-    isSwapping = true;
-
-    if (prefersReducedMotion) {
-      setStageContent(index);
-      gsap.set(stage, { opacity: 1, scale: 1, filter: "blur(0px)" });
-      activeIndex = index;
-      isSwapping = false;
-      return;
+      const frag = document.createDocumentFragment();
+      Array.from(tpl.childNodes).forEach((node) => {
+        frag.appendChild(node.cloneNode(true));
+      });
+      stage.appendChild(frag);
     }
 
-    gsap.killTweensOf(stage);
-    gsap.to(stage, {
-      opacity: 0,
-      duration: 0.16,
-      ease: "power1.out",
-      onComplete: () => {
+    function getSequenceItems() {
+      const items = [];
+
+      const svg = stage.querySelector("svg");
+      if (svg) items.push(svg);
+
+      stage.querySelectorAll("h1,h2,p,.hours").forEach((el) => {
+        if (el.tagName === "P" && !el.textContent.trim()) return;
+        items.push(el);
+      });
+
+      const seen = new Set();
+      return items.filter((el) => {
+        if (seen.has(el)) return false;
+        seen.add(el);
+        return true;
+      });
+    }
+
+    function playSequenceIn() {
+      if (prefersReducedMotion) return;
+
+      const items = getSequenceItems();
+      if (!items.length) return;
+
+      gsap.killTweensOf(items);
+
+      gsap.set(items, {
+        opacity: 0,
+        filter: "blur(" + SEQ_BLUR_IN + "px)",
+        scale: SEQ_SCALE_IN
+      });
+
+      gsap.to(items, {
+        opacity: 1,
+        filter: "blur(0px)",
+        scale: 1,
+        duration: SEQ_DURATION,
+        ease: "power2.out",
+        stagger: SEQ_STAGGER,
+        overwrite: "auto"
+      });
+    }
+
+    let activeIndex = 0;
+    let swapTimer = null;
+    let isSwapping = false;
+
+    function doSwap(index) {
+      if (index === activeIndex && !isSwapping) return;
+      if (isSwapping) return;
+
+      isSwapping = true;
+
+      if (prefersReducedMotion) {
         setStageContent(index);
+        gsap.set(stage, { opacity: 1, filter: "blur(0px)" });
+        activeIndex = index;
+        isSwapping = false;
+        return;
+      }
 
-        // Clear any previous container transforms/filters
-        gsap.set(stage, { opacity: 0, scale: 1, filter: "blur(0px)" });
+      gsap.killTweensOf(stage);
 
-        gsap.to(stage, {
-          opacity: 1,
-          duration: 0.22,
-          ease: "power2.out",
-          onComplete: () => {
-            activeIndex = index;
-            isSwapping = false;
-            playSequenceIn();
-            if (pendingIndex !== null && pendingIndex !== activeIndex) {
-              const next = pendingIndex;
-              pendingIndex = null;
-              swapTo(next);
-            } else {
-              pendingIndex = null;
+      gsap.to(stage, {
+        opacity: 0,
+        duration: 0.16,
+        ease: "power1.out",
+        onComplete: () => {
+          setStageContent(index);
+
+          gsap.set(stage, { opacity: 0, filter: "blur(0px)" });
+
+          gsap.to(stage, {
+            opacity: 1,
+            duration: 0.22,
+            ease: "power2.out",
+            onComplete: () => {
+              activeIndex = index;
+              isSwapping = false;
+              playSequenceIn();
             }
-          }
-        });
-      }
-    });
-  }
-
-  function indexFromScroll(self) {
-    const total = panels.length;
-    const dist = Math.max(1, self.end - self.start);
-    const px = self.scroll() - self.start;
-    const unit = dist / total;
-    const idx = Math.floor(px / unit + 0.00001);
-    return clamp(idx, 0, total - 1);
-  }
-
-  function buildSnap() {
-    if (st) st.kill();
-
-    let lastIdx = -1;
-
-    st = ScrollTrigger.create({
-      id: "panel-snap",
-      trigger: stack,
-      start: "top top",
-      end: () => "+=" + Math.max(1, stack.scrollHeight - innerHeight),
-      scrub: 1,
-      snap: prefersReducedMotion ? false : {
-        snapTo: (value) => {
-          const raw = value * (panels.length - 1);
-          return Math.round(raw) / (panels.length - 1);
-        },
-        duration: { min: 0.25, max: 0.6 },
-        delay: 0.05,
-        ease: "power2.out"
-      },
-      onUpdate: (self) => {
-        const idx = indexFromScroll(self);
-        if (idx !== lastIdx) {
-          lastIdx = idx;
-          swapTo(idx);
+          });
         }
-      }
-    });
-
-    ScrollTrigger.refresh();
-  }
-
-  function setupStage() {
-    setStageContent(0);
-    gsap.set(stage, { opacity: 1, scale: 1, filter: "blur(0px)" });
-    playSequenceIn();
-    activeIndex = 0;
-  }
-
-  function setupMobileSwipePaging() {
-    if (!isTouch) return;
-
-    let locked = false;
-    let startY = 0;
-    let startX = 0;
-    let startT = 0;
-
-    const currentIndex = () => {
-      if (!st) return 0;
-      return indexFromScroll(st);
-    };
-
-    const goToIndex = (i) => {
-      if (!st || locked) return;
-      locked = true;
-
-      const idx = clamp(i, 0, panels.length - 1);
-      const unit = (st.end - st.start) / panels.length;
-      const target = st.start + idx * unit + 1;
-
-      st.scroll(target);
-      gsap.delayedCall(0.35, () => (locked = false));
-    };
-
-    window.addEventListener("touchstart", (e) => {
-      if (!e.touches || !e.touches.length) return;
-      startY = e.touches[0].clientY;
-      startX = e.touches[0].clientX;
-      startT = performance.now();
-    }, { passive: true });
-
-    window.addEventListener("touchend", (e) => {
-      if (locked) return;
-      if (!e.changedTouches || !e.changedTouches.length) return;
-
-      const endY = e.changedTouches[0].clientY;
-      const endX = e.changedTouches[0].clientX;
-
-      const dy = startY - endY;
-      const dx = startX - endX;
-
-      const dt = Math.max(1, performance.now() - startT);
-      const v = Math.abs(dy) / dt;
-
-      if (Math.abs(dx) > Math.abs(dy)) return;
-
-      const minSwipe = 40;
-      const minVelocity = 0.25;
-
-      if (Math.abs(dy) > minSwipe && v > minVelocity) {
-        const idx = currentIndex();
-        goToIndex(dy > 0 ? idx + 1 : idx - 1);
-      }
-    }, { passive: true });
-  }
-
-  function setupDesktopRightClickForward() {
-    if (isTouch) return;
-
-    const currentIndex = () => {
-      if (!st) return 0;
-      return indexFromScroll(st);
-    };
-
-    const goToIndex = (i) => {
-      if (!st) return;
-      const idx = clamp(i, 0, panels.length - 1);
-      const unit = (st.end - st.start) / panels.length;
-      st.scroll(st.start + idx * unit + 1);
-    };
-
-    window.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-      const idx = currentIndex();
-      goToIndex(idx + 1);
-    });
-  }
-
-  setupStage();
-  buildSnap();
-  setupMobileSwipePaging();
-  setupDesktopRightClickForward();
-
-  let resizeRaf = 0;
-  window.addEventListener("resize", () => {
-    cancelAnimationFrame(resizeRaf);
-    resizeRaf = requestAnimationFrame(() => {
-      buildSnap();
-    });
-  });
-
-
-  (function setupFullscreenButton(){
-  const btn = document.getElementById("fsBtn");
-  if (!btn) return;
-
-  const canFS = !!document.documentElement.requestFullscreen;
-  if (!canFS) {
-    btn.style.display = "none";
-    return;
-  }
-
-  btn.addEventListener("click", async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen({ navigationUI: "hide" });
-      }
-      btn.style.display = "none";
-    } catch (e) {
-      // If it fails, keep the button visible
+      });
     }
-  });
-})();
 
-</script>
+    function requestSwap(index) {
+      if (swapTimer) swapTimer.kill();
+      swapTimer = gsap.delayedCall(0.08, () => doSwap(index));
+    }
 
+    function indexFromScroll(self) {
+      const total = panels.length;
+      const dist = Math.max(1, self.end - self.start);
+      const px = self.scroll() - self.start;
+      const unit = dist / total;
+      const idx = Math.floor(px / unit + 0.00001);
+      return clamp(idx, 0, total - 1);
+    }
 
+    function buildSnap() {
+      if (st) st.kill();
+
+      st = ScrollTrigger.create({
+        id: "panel-snap",
+        trigger: stack,
+        start: "top top",
+        end: () => "+=" + Math.max(1, stack.scrollHeight - innerHeight),
+        scrub: 1,
+        snap: prefersReducedMotion ? false : {
+          snapTo: (value) => {
+            const raw = value * (panels.length - 1);
+            return Math.round(raw) / (panels.length - 1);
+          },
+          duration: { min: 0.25, max: 0.6 },
+          delay: 0.05,
+          ease: "power2.out"
+        },
+        onUpdate: (self) => {
+          const idx = indexFromScroll(self);
+          requestSwap(idx);
+        }
+      });
+
+      ScrollTrigger.refresh();
+    }
+
+    function setupStage() {
+      setStageContent(0);
+      gsap.set(stage, { opacity: 1, filter: "blur(0px)" });
+      activeIndex = 0;
+      playSequenceIn();
+    }
+
+    function setupMobileSwipePaging() {
+      if (!isTouch) return;
+
+      let locked = false;
+      let startY = 0;
+      let startX = 0;
+      let startT = 0;
+
+      const currentIndex = () => {
+        if (!st) return 0;
+        return indexFromScroll(st);
+      };
+
+      const goToIndex = (i) => {
+        if (!st || locked) return;
+        locked = true;
+
+        const idx = clamp(i, 0, panels.length - 1);
+        const unit = (st.end - st.start) / panels.length;
+        const target = st.start + idx * unit + 1;
+
+        st.scroll(target);
+        gsap.delayedCall(0.35, () => (locked = false));
+      };
+
+      window.addEventListener("touchstart", (e) => {
+        if (!e.touches || !e.touches.length) return;
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        startT = performance.now();
+      }, { passive: true });
+
+      window.addEventListener("touchend", (e) => {
+        if (locked) return;
+        if (!e.changedTouches || !e.changedTouches.length) return;
+
+        const endY = e.changedTouches[0].clientY;
+        const endX = e.changedTouches[0].clientX;
+
+        const dy = startY - endY;
+        const dx = startX - endX;
+
+        const dt = Math.max(1, performance.now() - startT);
+        const v = Math.abs(dy) / dt;
+
+        if (Math.abs(dx) > Math.abs(dy)) return;
+
+        const minSwipe = 40;
+        const minVelocity = 0.25;
+
+        if (Math.abs(dy) > minSwipe && v > minVelocity) {
+          const idx = currentIndex();
+          goToIndex(dy > 0 ? idx + 1 : idx - 1);
+        }
+      }, { passive: true });
+    }
+
+    function setupDesktopRightClickForward() {
+      if (isTouch) return;
+
+      const currentIndex = () => {
+        if (!st) return 0;
+        return indexFromScroll(st);
+      };
+
+      const goToIndex = (i) => {
+        if (!st) return;
+        const idx = clamp(i, 0, panels.length - 1);
+        const unit = (st.end - st.start) / panels.length;
+        st.scroll(st.start + idx * unit + 1);
+      };
+
+      window.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const idx = currentIndex();
+        goToIndex(idx + 1);
+      });
+    }
+
+    function setupFullscreenButton(){
+      const btn = document.getElementById("fsBtn");
+      if (!btn) return;
+
+      const canFS = !!document.documentElement.requestFullscreen;
+      if (!canFS) {
+        btn.style.display = "none";
+        return;
+      }
+
+      btn.addEventListener("click", async () => {
+        try {
+          if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+          }
+          btn.style.display = "none";
+        } catch (e) {}
+      });
+    }
+
+    setupStage();
+    buildSnap();
+    setupMobileSwipePaging();
+    setupDesktopRightClickForward();
+    setupFullscreenButton();
+
+    let resizeRaf = 0;
+    window.addEventListener("resize", () => {
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => {
+        if (swapTimer) swapTimer.kill();
+        swapTimer = null;
+        buildSnap();
+        requestSwap(activeIndex);
+      });
+    });
+  </script>
 </body>
 </html>
