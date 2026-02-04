@@ -126,7 +126,6 @@
       .stage-inner{width:min(var(--max), calc(100vw - 36px));}
     }
 
-    /* Tap zones */
     .nav{
       position:fixed;
       inset:0;
@@ -145,7 +144,6 @@
     }
     .zone:focus{ outline:none; }
 
-    /* Bottom UI */
     .hud{
       position:fixed;
       left:0;
@@ -206,7 +204,6 @@
       cursor:pointer;
     }
 
-    /* Help popout */
     .help{
       position:fixed;
       left:0;
@@ -291,7 +288,6 @@
     <div class="stage-inner" id="stage"></div>
   </div>
 
-  <!-- Tap left = back, right = next -->
   <div class="nav" aria-hidden="true">
     <button class="zone" id="prevZone" type="button" aria-label="Previous"></button>
     <button class="zone" id="nextZone" type="button" aria-label="Next"></button>
@@ -323,11 +319,10 @@
     </div>
   </div>
 
-  <!-- Templates -->
   <main id="stack" aria-hidden="true">
     <section class="panel" data-panel>
       <div class="tpl" data-tpl>
-          <svg width="300" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 545.5965 61.9692">
+        <svg width="300" id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 545.5965 61.9692">
           <defs><style>.cls-1{fill:#fff;}</style></defs>
           <path class="cls-1" d="M119.2177,31.0066c.1743,10.7215-6.7734,20.9556-16.6505,24.9462-17.7086,7.3063-37.2863-5.7914-37.2216-24.9463.0474-19.5804,19.272-32.117,37.3422-24.9812,9.9531,3.9931,16.6882,14.2611,16.5299,24.9813ZM92.25,52.3074c15.0734.0213,24.2599-15.9856,18.8844-29.4898-5.3648-13.7808-22.8635-17.7132-33.2628-6.9417-12.4627,13.0513-4.327,36.3303,14.3784,36.4315Z"/>
           <path class="cls-1" d="M48.9558,56.538V5.0358h5.9218v51.5022h-5.9218Z"/>
@@ -358,22 +353,20 @@
       </div>
     </section>
 
-    <section class="panel" data-panel><div class="tpl" data-tpl><h2>APPOINTMENT <span class="bold">PERKS</span></h2></div></section>
-    <section class="panel" data-panel><div class="tpl" data-tpl><p class="lead"><span class="bold">Complimentary manicure removals</span> every 3 weeks</p></div></section>
-    <section class="panel" data-panel><div class="tpl" data-tpl><p class="lead"><span class="bold">Open everyday</span>, Monday to Sunday</p></div></section>
-    <section class="panel" data-panel><div class="tpl" data-tpl><p class="lead"><span class="bold">Signature nail art</span> and limited designs</p></div></section>
-
     <section class="panel" data-panel>
       <div class="tpl" data-tpl>
-        <p class="lead"><span class="bold">Expert nail technicians</span></p>
-        <p class="text-small">who can offer tailored advice on every visit</p>
-      </div>
-    </section>
-
-    <section class="panel" data-panel>
-      <div class="tpl" data-tpl>
+        <h2>APPOINTMENT <span class="bold">PERKS</span></h2>
+        <div class="spacer-32"></div>
+    
+        <p class="lead"><span class="bold">Complimentary manicure removals</span> every 3 weeks</p>
+        <div class="spacer-32"></div>
+        <p class="lead"><span class="bold">Open everyday</span>, Monday to Sunday</p>
+        <div class="spacer-32"></div>
+        <p class="lead"><span class="bold">Signature nail art</span> and limited designs</p>
+        <div class="spacer-32"></div>
+        <p class="lead"><span class="bold">Expert nail technicians</span> who can offer tailored advice on every visit</p>
+        <div class="spacer-32"></div>
         <p class="lead"><span class="bold">Silent appointments</span> available</p>
-        <p class="text-small">We get it, sometimes you just need to detox and unwind.<br/>Utilise our complimentary headphones & tablets</p>
       </div>
     </section>
 
@@ -432,10 +425,17 @@
 
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-    const SEQ_STAGGER = 0.09;
-    const SEQ_DURATION = 0.32;
+    /* Slower title + pause between paragraphs */
+    const TITLE_DURATION = 0.52;
+    const TITLE_GAP = 0.18;
+    const P_DURATION = 0.40;
+    const P_GAP = 0.16;
+
+    /* Base reveal styling */
     const SEQ_BLUR_IN = 10;
     const SEQ_SCALE_IN = 1.012;
+
+    const INTRO_PAUSE_MS = 800;
 
     let index = 0;
     let locked = false;
@@ -452,47 +452,96 @@
       stage.appendChild(frag);
     }
 
-    function getSequenceItems() {
-      const items = [];
-
+    function getSequenceGroups() {
       const svg = stage.querySelector("svg");
-      if (svg) items.push(svg);
+      const title = stage.querySelector("h1,h2");
+      const ps = Array.from(stage.querySelectorAll("p")).filter(p => p.textContent.trim());
+      const others = Array.from(stage.querySelectorAll(".hours")).filter(Boolean);
 
-      stage.querySelectorAll("h1,h2,p,.hours").forEach((el) => {
-        if (el.tagName === "P" && !el.textContent.trim()) return;
-        items.push(el);
-      });
-
-      const seen = new Set();
-      return items.filter((el) => (seen.has(el) ? false : (seen.add(el), true)));
+      return { svg, title, ps, others };
     }
 
-    function sequencePrepare(items) {
+    function sequencePrepare(groups) {
       if (prefersReducedMotion) return;
-      if (!items || !items.length) return;
+      if (!groups) return;
 
-      gsap.killTweensOf(items);
-      gsap.set(items, {
+      const all = [
+        ...(groups.svg ? [groups.svg] : []),
+        ...(groups.title ? [groups.title] : []),
+        ...groups.ps,
+        ...groups.others
+      ];
+
+      if (!all.length) return;
+
+      gsap.killTweensOf(all);
+      gsap.set(all, {
         opacity: 0,
         filter: "blur(" + SEQ_BLUR_IN + "px)",
         scale: SEQ_SCALE_IN
       });
     }
 
-    function sequencePlay(items) {
+    function sequencePlay(groups, isIntro) {
       if (prefersReducedMotion) return;
-      if (!items || !items.length) return;
+      if (!groups) return;
 
-      gsap.killTweensOf(items);
-      return gsap.to(items, {
-        opacity: 1,
-        filter: "blur(0px)",
-        scale: 1,
-        duration: SEQ_DURATION,
-        ease: "power2.out",
-        stagger: SEQ_STAGGER,
-        overwrite: "auto"
-      });
+      const tl = gsap.timeline();
+
+      /* SVG first */
+      if (groups.svg) {
+        tl.to(groups.svg, {
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+          duration: 0.36,
+          ease: "power2.out"
+        });
+      }
+
+      /* Intro pause after SVG before text */
+      if (isIntro && groups.svg && (groups.title || groups.ps.length || groups.others.length)) {
+        tl.to({}, { duration: INTRO_PAUSE_MS / 1000 });
+      }
+
+      /* Title first */
+      if (groups.title) {
+        tl.to(groups.title, {
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+          duration: TITLE_DURATION,
+          ease: "power2.out"
+        });
+        tl.to({}, { duration: TITLE_GAP });
+      }
+
+      /* Then each paragraph with a small pause */
+      if (groups.ps.length) {
+        groups.ps.forEach((p) => {
+          tl.to(p, {
+            opacity: 1,
+            filter: "blur(0px)",
+            scale: 1,
+            duration: P_DURATION,
+            ease: "power2.out"
+          });
+          tl.to({}, { duration: P_GAP });
+        });
+      }
+
+      /* Finally, hours (if present) */
+      if (groups.others.length) {
+        tl.to(groups.others, {
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+          duration: 0.44,
+          ease: "power2.out"
+        });
+      }
+
+      return tl;
     }
 
     function updateHud() {
@@ -501,14 +550,8 @@
       nextBtn.disabled = index === tpls.length - 1;
     }
 
-    function closeHelp() {
-      helpPop.classList.add("help-hidden");
-    }
-
-    function openHelp() {
-      helpPop.classList.remove("help-hidden");
-    }
-
+    function closeHelp() { helpPop.classList.add("help-hidden"); }
+    function openHelp() { helpPop.classList.remove("help-hidden"); }
     function toggleHelp() {
       if (helpPop.classList.contains("help-hidden")) openHelp();
       else closeHelp();
@@ -534,6 +577,8 @@
       if (swapTL) swapTL.kill();
       gsap.killTweensOf(stage);
 
+      let groups = null;
+
       swapTL = gsap.timeline({
         defaults: { overwrite: "auto" },
         onComplete: () => {
@@ -547,17 +592,15 @@
 
       swapTL.add(() => {
         setStageContent(next);
-
-        const items = getSequenceItems();
-        sequencePrepare(items);
-
+        groups = getSequenceGroups();
+        sequencePrepare(groups);
         gsap.set(stage, { opacity: 0 });
+      });
 
-        swapTL.to(stage, { opacity: 1, duration: 0.22, ease: "power2.out" }, ">");
+      swapTL.to(stage, { opacity: 1, duration: 0.22, ease: "power2.out" });
 
-        swapTL.add(() => {
-          sequencePlay(items);
-        }, ">");
+      swapTL.add(() => {
+        sequencePlay(groups, next === 0);
       });
     }
 
@@ -598,7 +641,7 @@
           e.preventDefault();
           prev();
         }
-        if (e.key.toLowerCase && e.key.toLowerCase() === "i") {
+        if (e.key && e.key.toLowerCase && e.key.toLowerCase() === "i") {
           toggleHelp();
         }
       }, { passive: false });
@@ -659,10 +702,9 @@
       gsap.set(stage, { opacity: 1 });
 
       if (!prefersReducedMotion) {
-        const items = getSequenceItems();
-        sequencePrepare(items);
-        gsap.set(stage, { opacity: 1 });
-        sequencePlay(items);
+        const groups = getSequenceGroups();
+        sequencePrepare(groups);
+        sequencePlay(groups, true);
       }
 
       updateHud();
@@ -671,7 +713,9 @@
       setupWheel();
       setupSwipe();
 
-      const isTouch = (window.matchMedia && window.matchMedia("(hover: none)").matches) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+      const isTouch = (window.matchMedia && window.matchMedia("(hover: none)").matches) ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+
       if (isTouch) {
         openHelp();
         setTimeout(() => closeHelp(), 2500);
